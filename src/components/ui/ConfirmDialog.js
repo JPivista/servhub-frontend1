@@ -1,4 +1,4 @@
-import { ghostBtn, primaryBtn } from "./formStyles";
+import { ghostBtn, primaryBtn, fieldClass } from "./formStyles";
 import GlassPanel from "./GlassPanel";
 
 export default function ConfirmDialog({
@@ -9,6 +9,7 @@ export default function ConfirmDialog({
   danger = false,
   onConfirm,
   onCancel,
+  children,
 }) {
   if (!open) return null;
 
@@ -22,7 +23,8 @@ export default function ConfirmDialog({
       />
       <GlassPanel className="relative z-10 w-full max-w-md p-6">
         <h2 className="text-lg font-semibold">{title}</h2>
-        <p className="mt-2 text-sm text-white/65">{message}</p>
+        {message ? <p className="mt-2 text-sm text-white/65">{message}</p> : null}
+        {children ? <div className="mt-4">{children}</div> : null}
         <div className="mt-5 flex justify-end gap-2">
           <button type="button" className={ghostBtn} onClick={onCancel}>
             Cancel
@@ -43,3 +45,5 @@ export default function ConfirmDialog({
     </div>
   );
 }
+
+export { fieldClass };

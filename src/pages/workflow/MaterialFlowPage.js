@@ -6,7 +6,7 @@ import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import DataTable from "../../components/ui/DataTable";
 import GlassPanel, { PageIntro } from "../../components/ui/GlassPanel";
 import StatusBadge from "../../components/ui/StatusBadge";
-import { ghostBtn, primaryBtn } from "../../components/ui/formStyles";
+import { fieldClass, ghostBtn, primaryBtn } from "../../components/ui/formStyles";
 import {
   deleteMaterialRequest,
   saveMaterialRequest,
@@ -14,7 +14,7 @@ import {
   updateMaterialStatus,
 } from "../../store/workflowSlice";
 import { hasPrivilege } from "../../constants/privileges";
-import { actionsFor, isEditableStatus, materialRequestHref, stageStatuses } from "../../features/workflow/workflow";
+import { actionsFor, isEditableStatus, materialRequestHref, statusesForStage } from "../../features/workflow/workflow";
 import { homePathForRole } from "../../constants/nav";
 import { api } from "../../services/api";
 
@@ -40,9 +40,11 @@ export default function MaterialFlow({
     hasPrivilege(privileges, "material_requests", "edit") || hasPrivilege(privileges, moduleKey, "edit");
   const canDelete = hasPrivilege(privileges, "material_requests", "delete");
   const [pending, setPending] = useState(null);
+  const [quotationText, setQuotationText] = useState("");
   const [error, setError] = useState("");
+  const needsQuote = Boolean(pending?.action?.requiresQuotation);
 
-  const statuses = stageStatuses[moduleKey];
+  const statuses = statusesForStage(moduleKey, roleKey);
   const scopedRows = isRequestor
     ? rows.filter(
         (item) =>
@@ -59,7 +61,10 @@ export default function MaterialFlow({
         const response = await api.get("/material-requests");
         if (cancelled) return;
         dispatch(setMaterialRequests(response.materialRequests || []));
-      } catch {
+        setError("");
+      } catch (err) {
+        if (cancelled) return;
+        setError(err.message || "Failed to load material requests");
         if (isRequestor) dispatch(setMaterialRequests([]));
       }
     })();
@@ -123,7 +128,10 @@ export default function MaterialFlow({
                 ...actions.map((action) => ({
                   label: action.label,
                   tone: action.tone,
-                  onClick: () => setPending({ record, action }),
+                  onClick: () => {
+                    setQuotationText(record.quotation || "");
+                    setPending({ record, action });
+                  },
                 })),
                 canDelete || (isRequestor && isEditableStatus(record.status))
                   ? {
@@ -203,31 +211,60 @@ export default function MaterialFlow({
         message={
           pending?.action?.type === "delete"
             ? `Delete ${pending?.record?.id}?`
-            : `Move ${pending?.record?.id} to ${pending?.action?.status}?`
+            : needsQuote
+              ? "Enter the supplier quotation in the box below (price, terms, notes)."
+              : `Move ${pending?.record?.id} to ${pending?.action?.status}?`
         }
         confirmLabel={pending?.action?.label || "Confirm"}
         danger={pending?.action?.tone === "reject" || pending?.action?.type === "delete"}
-        onCancel={() => setPending(null)}
+        onCancel={() => {
+          setPending(null);
+          setQuotationText("");
+        }}
         onConfirm={async () => {
           try {
             if (pending.action.type === "delete") {
               await api.del(`/material-requests/${pending.record.id}`);
               dispatch(deleteMaterialRequest(pending.record.id));
             } else {
-              const response = await api.put(`/material-requests/${pending.record.id}`, {
-                status: pending.action.status,
-              });
+              if (needsQuote && !quotationText.trim()) {
+                setError("Quotation text is required");
+                return;
+              }
+              const payload = {};
+              if (pending.action.status && pending.action.status !== pending.record.status) {
+                payload.status = pending.action.status;
+              }
+              if (needsQuote) payload.quotation = quotationText.trim();
+              const response = await api.put(`/material-requests/${pending.record.id}`, payload);
               dispatch(saveMaterialRequest(response.materialRequest));
-              dispatch(
-                updateMaterialStatus({ id: pending.record.id, status: pending.action.status })
-              );
+              if (payload.status) {
+                dispatch(
+                  updateMaterialStatus({ id: pending.record.id, status: payload.status })
+                );
+              }
             }
+            setPending(null);
+            setQuotationText("");
           } catch (err) {
             setError(err.message);
+            setPending(null);
           }
-          setPending(null);
         }}
-      />
+      >
+        {needsQuote ? (
+          <label className="block">
+            <span className="mb-1.5 block text-sm text-white/70">Quotation</span>
+            <textarea
+              className={`${fieldClass} min-h-[7rem]`}
+              value={quotationText}
+              onChange={(e) => setQuotationText(e.target.value)}
+              placeholder="e.g. Unit price 1200, delivery 7 days, warranty 1 year…"
+              autoFocus
+            />
+          </label>
+        ) : null}
+      </ConfirmDialog>
     </div>
   );
 }
