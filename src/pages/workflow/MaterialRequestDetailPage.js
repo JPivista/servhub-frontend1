@@ -74,7 +74,13 @@ export default function MaterialRequestDetail() {
   }, [dispatch, id]);
 
   if (!canView) return <Navigate to="/" replace />;
-  if (forbidden || (roleKey === "user" && record && record.requestedById && record.requestedById !== currentUser?.id)) {
+  if (
+    forbidden ||
+    ((roleKey === "user" || roleKey === "requestor" || roleKey === "requester") &&
+      record &&
+      record.requestedById &&
+      record.requestedById !== currentUser?.id)
+  ) {
     return <Navigate to="/material-requests" replace />;
   }
   if (loading && !record) {

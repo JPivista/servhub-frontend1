@@ -15,6 +15,7 @@ import {
 } from "../../store/workflowSlice";
 import { hasPrivilege } from "../../constants/privileges";
 import { actionsFor, isEditableStatus, materialRequestHref, stageStatuses } from "../../features/workflow/workflow";
+import { homePathForRole } from "../../constants/nav";
 import { api } from "../../services/api";
 
 export default function MaterialFlow({
@@ -30,21 +31,25 @@ export default function MaterialFlow({
   const roleKey = useSelector((state) => state.auth.role?.key || state.auth.user?.role);
   const currentUser = useSelector((state) => state.auth.user);
   const rows = useSelector((state) => state.workflow.materialRequests);
-  const canCreate = allowCreate && hasPrivilege(privileges, moduleKey, "create");
-  const canEdit = hasPrivilege(privileges, moduleKey, "edit");
-  const canDelete = hasPrivilege(privileges, moduleKey, "delete");
+  const isRequestor = roleKey === "user" || roleKey === "requestor" || roleKey === "requester";
+  const canCreate =
+    allowCreate &&
+    (hasPrivilege(privileges, "material_requests", "create") ||
+      hasPrivilege(privileges, moduleKey, "create"));
+  const canEdit =
+    hasPrivilege(privileges, "material_requests", "edit") || hasPrivilege(privileges, moduleKey, "edit");
+  const canDelete = hasPrivilege(privileges, "material_requests", "delete");
   const [pending, setPending] = useState(null);
   const [error, setError] = useState("");
 
   const statuses = stageStatuses[moduleKey];
-  const scopedRows =
-    roleKey === "user"
-      ? rows.filter(
-          (item) =>
-            item.requestedById === currentUser?.id ||
-            (!item.requestedById && item.requestedBy === currentUser?.name)
-        )
-      : rows;
+  const scopedRows = isRequestor
+    ? rows.filter(
+        (item) =>
+          item.requestedById === currentUser?.id ||
+          (!item.requestedById && item.requestedBy === currentUser?.name)
+      )
+    : rows;
   const data = statuses ? scopedRows.filter((item) => statuses.includes(item.status)) : scopedRows;
 
   useEffect(() => {
@@ -55,13 +60,13 @@ export default function MaterialFlow({
         if (cancelled) return;
         dispatch(setMaterialRequests(response.materialRequests || []));
       } catch {
-        if (roleKey === "user") dispatch(setMaterialRequests([]));
+        if (isRequestor) dispatch(setMaterialRequests([]));
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [dispatch, roleKey]);
+  }, [dispatch, isRequestor]);
 
   const columns = useMemo(
     () => [
@@ -120,7 +125,7 @@ export default function MaterialFlow({
                   tone: action.tone,
                   onClick: () => setPending({ record, action }),
                 })),
-                canDelete || (roleKey === "user" && isEditableStatus(record.status))
+                canDelete || (isRequestor && isEditableStatus(record.status))
                   ? {
                       label: "Delete",
                       tone: "delete",
@@ -137,11 +142,11 @@ export default function MaterialFlow({
         },
       },
     ],
-    [canDelete, canEdit, navigate, roleKey, showPayment]
+    [canDelete, canEdit, isRequestor, navigate, roleKey, showPayment]
   );
 
   if (!hasPrivilege(privileges, moduleKey, "view")) {
-    return <Navigate to={roleKey === "user" ? "/material-requests" : "/"} replace />;
+    return <Navigate to={homePathForRole(roleKey)} replace />;
   }
 
   return (

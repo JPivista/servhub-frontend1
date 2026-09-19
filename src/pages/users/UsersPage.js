@@ -4,9 +4,16 @@ import UserManager from "../../features/users/UserManager";
 import { PageIntro } from "../../components/ui/GlassPanel";
 import { hasPrivilege } from "../../constants/privileges";
 
-const titles = {
+const ROLE_TITLES = {
   admin: "Admins",
-  user: "Users",
+  requestor: "Requestors",
+  manager: "Department Managers",
+  procurement: "Procurement",
+  department_head: "Department Heads",
+  finance: "Finance",
+  supplier: "Suppliers",
+  in_charge: "Department Incharge",
+  user: "Requestors (legacy)",
 };
 
 export default function Users() {
@@ -15,17 +22,18 @@ export default function Users() {
   const privileges = useSelector((state) => state.auth.privileges);
   if (!hasPrivilege(privileges, "users", "view")) return <Navigate to="/" replace />;
 
-  const roleKeys = role ? [role] : ["admin", "user"];
-  const title = titles[role] || "Users";
+  const title = role ? ROLE_TITLES[role] || "Users" : "Users";
 
   return (
     <div className="space-y-5">
       <PageIntro kicker="Directory" title={title}>
         {!role ? (
-          <p className="mt-1 text-sm text-white/55">Admins and all users in one place.</p>
+          <p className="mt-1 text-sm text-white/55">
+            All workspace roles — requestors, managers, procurement, finance, and more.
+          </p>
         ) : null}
       </PageIntro>
-      <UserManager title={title} roleKeys={roleKeys} />
+      <UserManager title={title} roleKeys={role ? [role] : null} />
     </div>
   );
 }

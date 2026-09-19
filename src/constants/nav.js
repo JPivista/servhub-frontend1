@@ -49,7 +49,7 @@ const SUPER_ADMIN_ORDER = [
   "audits",
 ];
 
-const USER_MENU_KEYS = ["material_requests", "attendance"];
+const REQUESTOR_MENU_KEYS = ["material_requests", "settings"];
 
 function canViewModule(key, privileges, roleKey) {
   if (key === "attendance") return false;
@@ -64,8 +64,11 @@ export function flattenNavItems(items = []) {
 }
 
 export function getNavItems(privileges, roleKey) {
-  if (roleKey === "user") {
-    return USER_MENU_KEYS.map((key) => ({ key, ...modules[key] }));
+  const isRequestor = roleKey === "user" || roleKey === "requestor" || roleKey === "requester";
+  if (isRequestor) {
+    return REQUESTOR_MENU_KEYS.filter((key) => canViewModule(key, privileges, roleKey) || key === "material_requests").map(
+      (key) => ({ key, ...modules[key] })
+    );
   }
 
   const allowed = Object.entries(modules)
@@ -122,5 +125,13 @@ export function getModuleByPath(pathname) {
 }
 
 export function homePathForRole(roleKey) {
-  return roleKey === "user" ? "/material-requests" : "/";
+  if (roleKey === "user" || roleKey === "requestor" || roleKey === "requester") {
+    return "/material-requests";
+  }
+  if (roleKey === "supplier") return "/purchase-orders";
+  if (roleKey === "manager" || roleKey === "department_head") return "/approvals";
+  if (roleKey === "procurement") return "/procurement";
+  if (roleKey === "finance") return "/payments";
+  if (roleKey === "in_charge") return "/deliveries";
+  return "/";
 }

@@ -11,8 +11,8 @@ import PrivilegeAccordion from "./PrivilegeAccordion";
 
 export default function PrivilegeManager() {
   const dispatch = useDispatch();
-  const roles = useSelector((state) => state.directory.roles).filter((role) =>
-    ["admin", "user"].includes(role.key)
+  const roles = useSelector((state) => state.directory.roles).filter(
+    (role) => role.key !== "super_admin" && role.key !== "user"
   );
   const rolePrivileges = useSelector((state) => state.directory.rolePrivileges);
   const privileges = useSelector((state) => state.auth.privileges);

@@ -74,7 +74,7 @@ export default function TopBar({ onMenu, navOpen, navVisible, onToggleNav }) {
   const mrs = useSelector((state) => state.workflow.materialRequests);
   const roleKey = role?.key;
   const navItems = flattenNavItems(getNavItems(privileges, roleKey));
-  const showSearch = roleKey !== "user";
+  const showSearch = roleKey !== "user" && roleKey !== "requestor" && roleKey !== "requester";
   const firstName = user?.name?.split(" ")[0] || "there";
   const initials = user?.name
     ?.split(" ")

@@ -1,12 +1,11 @@
 [
   { "id": 1, "name": "Super Admin", "key": "super_admin" },
   { "id": 2, "name": "Admin", "key": "admin" },
-  { "id": 3, "name": "User", "key": "user" },
-  { "id": 4, "name": "Requester", "key": "requester" },
-  { "id": 5, "name": "Project / Department Manager", "key": "manager" },
-  { "id": 6, "name": "Procurement", "key": "procurement" },
-  { "id": 7, "name": "Department Head", "key": "department_head" },
-  { "id": 8, "name": "Finance", "key": "finance" },
-  { "id": 9, "name": "Supplier", "key": "supplier" },
-  { "id": 10, "name": "Project / Department In-Charge", "key": "in_charge" }
+  { "id": 3, "name": "Requestor", "key": "requestor" },
+  { "id": 4, "name": "Department Manager", "key": "manager" },
+  { "id": 5, "name": "Procurement", "key": "procurement" },
+  { "id": 6, "name": "Department Head", "key": "department_head" },
+  { "id": 7, "name": "Finance", "key": "finance" },
+  { "id": 8, "name": "Supplier", "key": "supplier" },
+  { "id": 9, "name": "Department Incharge", "key": "in_charge" }
 ]

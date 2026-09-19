@@ -77,14 +77,14 @@ export default function UserForm() {
         name: existing.name,
         email: existing.email,
         password: "",
-        role: existing.role === "admin" ? "admin" : "user",
+        role: existing.role || "requestor",
         department: existing.department || actorDepartment || departmentOptions[0]?.key || "",
         privileges: extras,
         userCreateLimit: existing.userCreateLimit ?? 5,
       });
       return;
     }
-    const fallback = options[0]?.key || "user";
+    const fallback = options[0]?.key || "requestor";
     const role = options.some((item) => item.key === presetRole) ? presetRole : fallback;
     const department = isSuperAdmin
       ? departmentOptions[0]?.key || ""

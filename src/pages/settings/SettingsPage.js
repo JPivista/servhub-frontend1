@@ -21,8 +21,11 @@ export default function Settings() {
   const roleKey = useSelector((state) => state.auth.role?.key);
   const user = useSelector((state) => state.auth.user);
   const settings = useSelector((state) => state.directory.settings);
-  const canEditSettings = hasPrivilege(privileges, "settings", "edit") || roleKey === "user";
-  const isUser = roleKey === "user";
+  const canEditSettings =
+    hasPrivilege(privileges, "settings", "edit") ||
+    roleKey === "user" ||
+    roleKey === "requestor";
+  const isUser = roleKey === "user" || roleKey === "requestor" || roleKey === "requester";
   const [orgName, setOrgName] = useState(settings.orgName);
   const [theme, setTheme] = useState(settings.theme || "day");
   const [passwordForm, setPasswordForm] = useState({

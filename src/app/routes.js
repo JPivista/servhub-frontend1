@@ -22,7 +22,9 @@ import { useSelector } from "react-redux";
 
 function HomeRedirect() {
   const roleKey = useSelector((state) => state.auth.role?.key);
-  if (roleKey === "user") return <Navigate to="/material-requests" replace />;
+  if (roleKey === "user" || roleKey === "requestor" || roleKey === "requester") {
+    return <Navigate to="/material-requests" replace />;
+  }
   return <DashboardPage />;
 }
 

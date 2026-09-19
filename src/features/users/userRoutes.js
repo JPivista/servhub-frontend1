@@ -1,20 +1,21 @@
+import { WORKFLOW_ROLE_OPTIONS } from "../workflow/workflow";
+
 export function assignableRoles(actorRole) {
-  if (actorRole === "super_admin" || actorRole === "admin") {
-    return [
-      { key: "admin", name: "Admin" },
-      { key: "user", name: "User" },
-    ];
+  if (actorRole === "super_admin") {
+    return WORKFLOW_ROLE_OPTIONS;
+  }
+  if (actorRole === "admin") {
+    return WORKFLOW_ROLE_OPTIONS.filter((item) => item.key === "requestor" || item.key === "admin");
   }
   return [];
 }
 
 export function usersListHref(role) {
-  if (role === "admin") return "/users?role=admin";
-  if (role === "user") return "/users?role=user";
+  if (role) return `/users?role=${encodeURIComponent(role)}`;
   return "/users";
 }
 
-/** Always return to the full users list (admins + users). */
+/** Always return to the full users list. */
 export function usersHomeHref() {
   return "/users";
 }

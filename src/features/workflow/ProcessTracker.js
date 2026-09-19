@@ -1,45 +1,65 @@
 import { firstStepColor, stageColors } from "./statusColors";
 
+const headlines = {
+  Draft: "Draft request",
+  Requested: "Waiting for department manager",
+  Returned: "Returned for revision",
+  Approved: "Manager approved · procurement queue",
+  Rejected: "Request was rejected",
+  Sourcing: "Procurement sourcing",
+  "RFQ Issued": "Quotes requested from suppliers",
+  "Pending Commercial": "Department head commercial approval",
+  "Pending Finance": "Finance budget approval",
+  "Pending PO": "Ready for purchase order",
+  Ordered: "PO issued",
+  "PO Rejected": "Supplier rejected PO",
+  "In transit": "Supplier dispatch",
+  "Pending Receipt": "Awaiting site receipt",
+  Discrepancy: "Delivery discrepancy",
+  Delivered: "Material accepted",
+  Closed: "MR closed",
+};
+
 const steps = [
   {
-    label: "Requested",
-    hint: "MR created",
-    match: ["Draft", "Requested", "Returned", "Pending Approval"],
+    label: "Request",
+    hint: "Create / submit",
+    match: ["Draft", "Requested", "Returned"],
     colorKey: "Requested",
   },
   {
-    label: "Approved",
-    hint: "Business review",
+    label: "Business",
+    hint: "Dept manager",
     match: ["Approved", "Rejected"],
     colorKey: "Approved",
   },
   {
     label: "Sourcing",
-    hint: "RFQ / procurement",
-    match: ["Sourcing", "In Procurement", "RFQ Issued", "Pending Commercial", "Pending Finance"],
+    hint: "RFQ / recommend",
+    match: ["Sourcing", "RFQ Issued", "Pending Commercial", "Pending Finance", "Pending PO"],
     colorKey: "Sourcing",
   },
   {
-    label: "Ordered",
+    label: "Order",
     hint: "PO issued",
-    match: ["Ordered", "PO Issued", "PO Rejected"],
+    match: ["Ordered", "PO Rejected"],
     colorKey: "Ordered",
   },
   {
-    label: "In transit",
-    hint: "Supplier dispatch",
-    match: ["In transit", "In Delivery"],
+    label: "Delivery",
+    hint: "In transit",
+    match: ["In transit"],
     colorKey: "In transit",
   },
   {
-    label: "Arriving",
-    hint: "Site receipt",
-    match: ["Arriving", "Pending Receipt", "Discrepancy"],
+    label: "Receipt",
+    hint: "In-charge verify",
+    match: ["Pending Receipt", "Discrepancy"],
     colorKey: "Arriving",
   },
   {
-    label: "Delivered",
-    hint: "Closed",
+    label: "Closed",
+    hint: "Complete",
     match: ["Delivered", "Closed"],
     colorKey: "Delivered",
   },
@@ -47,31 +67,8 @@ const steps = [
 
 const failed = ["Rejected", "PO Rejected"];
 const warning = ["Returned", "Discrepancy"];
-const awaitingApproval = ["Requested", "Pending Approval"];
+const awaitingApproval = ["Requested", "Pending Commercial", "Pending Finance", "Pending PO"];
 
-const headlines = {
-  Draft: "Draft request",
-  Requested: "Waiting for approval",
-  Returned: "Returned for revision",
-  "Pending Approval": "Waiting for approval",
-  Approved: "Business review approved",
-  Rejected: "Request was rejected",
-  Sourcing: "RFQ / procurement",
-  "In Procurement": "RFQ / procurement",
-  "RFQ Issued": "Quotes requested",
-  "Pending Commercial": "Commercial approval pending",
-  "Pending Finance": "Budget approval pending",
-  Ordered: "PO issued",
-  "PO Issued": "PO issued",
-  "PO Rejected": "Purchase order rejected",
-  "In transit": "Supplier dispatch",
-  "In Delivery": "Supplier dispatch",
-  Arriving: "Site receipt",
-  "Pending Receipt": "Site receipt",
-  Discrepancy: "Delivery discrepancy",
-  Delivered: "Closed",
-  Closed: "Closed",
-};
 
 function stepColor(step, status) {
   if (step.colorKey === "Requested") return firstStepColor(status);
@@ -98,11 +95,14 @@ function stepState(status, index) {
 }
 
 function stepHint(step, status, state) {
-  if (step.label === "Approved" && (state === "waiting" || awaitingApproval.includes(status))) {
-    return "Waiting for approval";
+  if (step.label === "Business" && status === "Requested") {
+    return "Waiting for manager";
   }
-  if (step.label === "Requested" && awaitingApproval.includes(status)) {
-    return "Sent · next: approval";
+  if (step.label === "Request" && status === "Requested") {
+    return "Sent · next: manager";
+  }
+  if (step.label === "Sourcing" && awaitingApproval.includes(status)) {
+    return headlines[status] || step.hint;
   }
   return step.hint;
 }
