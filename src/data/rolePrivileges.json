@@ -1,0 +1,67 @@
+{
+  "super_admin": {
+    "dashboard": ["view"],
+    "material_requests": ["view", "create", "edit", "delete"],
+    "approvals": ["view", "approve", "reject"],
+    "procurement": ["view", "create", "edit"],
+    "purchase_orders": ["view", "create", "edit"],
+    "deliveries": ["view", "edit"],
+    "payments": ["view", "approve"],
+    "suppliers": ["view", "create", "edit", "delete"],
+    "users": ["view", "create", "edit", "delete"],
+    "roles": ["view", "create", "edit", "delete"],
+    "privileges": ["view", "create", "edit", "delete"],
+    "departments": ["view", "create", "edit", "delete"],
+    "delete_requests": ["view", "approve", "reject"],
+    "reports": ["view", "export"],
+    "audits": ["view"],
+    "settings": ["view", "edit"]
+  },
+  "admin": {
+    "dashboard": ["view"],
+    "users": ["view", "create", "edit"],
+    "reports": ["view"]
+  },
+  "user": {
+    "material_requests": ["view", "create", "edit"],
+    "attendance": ["view"],
+    "settings": ["view", "edit"]
+  },
+  "requester": {
+    "dashboard": ["view"],
+    "material_requests": ["view", "create", "edit"]
+  },
+  "manager": {
+    "dashboard": ["view"],
+    "material_requests": ["view"],
+    "approvals": ["view", "approve", "reject"]
+  },
+  "procurement": {
+    "dashboard": ["view"],
+    "material_requests": ["view"],
+    "procurement": ["view", "create", "edit"],
+    "purchase_orders": ["view", "create", "edit"],
+    "suppliers": ["view", "create", "edit"]
+  },
+  "department_head": {
+    "dashboard": ["view"],
+    "approvals": ["view", "approve", "reject"],
+    "reports": ["view"]
+  },
+  "finance": {
+    "dashboard": ["view"],
+    "approvals": ["view", "approve", "reject"],
+    "payments": ["view", "approve"],
+    "reports": ["view", "export"]
+  },
+  "supplier": {
+    "dashboard": ["view"],
+    "purchase_orders": ["view", "edit"],
+    "deliveries": ["view", "edit"]
+  },
+  "in_charge": {
+    "dashboard": ["view"],
+    "material_requests": ["view"],
+    "deliveries": ["view", "approve", "reject"]
+  }
+}
