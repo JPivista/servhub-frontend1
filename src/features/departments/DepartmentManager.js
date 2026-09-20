@@ -45,7 +45,7 @@ export default function DepartmentManager() {
         if (!departments.length) dispatch(setDirectory({ departments: defaultDepartments }));
       }
     })();
-  }, [dispatch]);
+  }, [dispatch, departments.length]);
 
   useEffect(() => {
     if (selectedKey === "testing" || (selectedKey && !departments.some((item) => item.key === selectedKey))) {

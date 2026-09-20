@@ -5,7 +5,6 @@ import GlassPanel, { PageIntro } from "../../components/ui/GlassPanel";
 import { fieldClass, primaryBtn } from "../../components/ui/formStyles";
 import { icons } from "../../components/icons";
 import { api } from "../../services/api";
-import { syncCurrentUser } from "../../store/authSlice";
 import { saveSettings } from "../../store/directorySlice";
 import { hasPrivilege } from "../../constants/privileges";
 
