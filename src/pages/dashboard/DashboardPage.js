@@ -42,8 +42,8 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  const adminCount = users.filter((item) => item.role === "admin").length;
-  const userCount = users.filter((item) => item.role === "user").length;
+  const adminCount = users.filter((item) => item.role === "admin" || item.role === "super_admin").length;
+  const userCount = users.length;
   const privilegeCount = Object.values(rolePrivileges || {}).reduce(
     (sum, actions) => sum + Object.values(actions || {}).reduce((total, list) => total + (list?.length || 0), 0),
     0
@@ -91,7 +91,7 @@ export default function Dashboard() {
     {
       key: "users",
       label: "Users",
-      to: usersListHref("user"),
+      to: usersListHref(),
       icon: "users",
       value: userCount,
     },
