@@ -5,7 +5,7 @@ import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import GlassPanel, { PageIntro } from "../../components/ui/GlassPanel";
 import ProcessTracker from "../../features/workflow/ProcessTracker";
 import StatusBadge from "../../components/ui/StatusBadge";
-import { ghostBtn } from "../../components/ui/formStyles";
+import { fieldClass, ghostBtn } from "../../components/ui/formStyles";
 import {
   deleteMaterialRequest,
   saveMaterialRequest,
@@ -48,6 +48,7 @@ export default function MaterialRequestDetail() {
   const canEdit = modules.some((key) => hasPrivilege(privileges, key, "edit"));
   const canDelete = modules.some((key) => hasPrivilege(privileges, key, "delete"));
   const [pending, setPending] = useState(null);
+  const [quotationText, setQuotationText] = useState("");
   const [forbidden, setForbidden] = useState(false);
   const [loading, setLoading] = useState(!record);
   const [error, setError] = useState("");
@@ -60,10 +61,8 @@ export default function MaterialRequestDetail() {
         if (cancelled) return;
         dispatch(saveMaterialRequest(response.materialRequest));
         setForbidden(false);
-      } catch (err) {
-        if (!cancelled) {
-          setForbidden(true);
-        }
+      } catch {
+        if (!cancelled) setForbidden(true);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -108,6 +107,7 @@ export default function MaterialRequestDetail() {
   }
 
   const actions = actionsFor(roleKey, record.status);
+  const needsQuote = Boolean(pending?.action?.requiresQuotation);
 
   return (
     <div className="space-y-5">
@@ -144,7 +144,10 @@ export default function MaterialRequestDetail() {
                 key={action.label}
                 type="button"
                 className={actionClass[action.tone] || actionClass.edit}
-                onClick={() => setPending({ action })}
+                onClick={() => {
+                  setQuotationText(record.quotation || "");
+                  setPending({ action });
+                }}
               >
                 {action.label}
               </button>
@@ -175,6 +178,13 @@ export default function MaterialRequestDetail() {
           ))}
         </div>
 
+        {record.quotation ? (
+          <div className="mt-4 rounded-2xl bg-white/5 p-4 sm:col-span-2">
+            <p className="text-xs uppercase tracking-[0.16em] text-white/45">Quotation</p>
+            <p className="mt-2 whitespace-pre-wrap text-sm font-medium">{record.quotation}</p>
+          </div>
+        ) : null}
+
         {record.products?.length ? (
           <div className="mt-5 overflow-x-auto rounded-2xl border border-white/10">
             <table className="w-full min-w-[520px] text-left text-sm">
@@ -199,7 +209,6 @@ export default function MaterialRequestDetail() {
             </table>
           </div>
         ) : null}
-
       </GlassPanel>
 
       <ConfirmDialog
@@ -208,11 +217,16 @@ export default function MaterialRequestDetail() {
         message={
           pending?.action?.type === "delete"
             ? `Delete ${record.id}?`
-            : `Move ${record.id} to ${pending?.action?.status}?`
+            : needsQuote
+              ? "Enter the supplier quotation in the box below (price, terms, notes)."
+              : `Move ${record.id} to ${pending?.action?.status}?`
         }
         confirmLabel={pending?.action?.label || "Confirm"}
         danger={pending?.action?.tone === "reject" || pending?.action?.type === "delete"}
-        onCancel={() => setPending(null)}
+        onCancel={() => {
+          setPending(null);
+          setQuotationText("");
+        }}
         onConfirm={async () => {
           try {
             setError("");
@@ -221,17 +235,39 @@ export default function MaterialRequestDetail() {
               dispatch(deleteMaterialRequest(record.id));
               navigate("/material-requests");
             } else {
-              const response = await api.put(`/material-requests/${record.id}`, {
-                status: pending.action.status,
-              });
+              if (needsQuote && !quotationText.trim()) {
+                setError("Quotation text is required");
+                return;
+              }
+              const payload = {};
+              if (pending.action.status && pending.action.status !== record.status) {
+                payload.status = pending.action.status;
+              }
+              if (needsQuote) payload.quotation = quotationText.trim();
+              const response = await api.put(`/material-requests/${record.id}`, payload);
               dispatch(saveMaterialRequest(response.materialRequest));
             }
+            setPending(null);
+            setQuotationText("");
           } catch (err) {
             setError(err.message);
+            setPending(null);
           }
-          setPending(null);
         }}
-      />
+      >
+        {needsQuote ? (
+          <label className="block">
+            <span className="mb-1.5 block text-sm text-white/70">Quotation</span>
+            <textarea
+              className={`${fieldClass} min-h-[7rem]`}
+              value={quotationText}
+              onChange={(e) => setQuotationText(e.target.value)}
+              placeholder="e.g. Unit price 1200, delivery 7 days, warranty 1 year…"
+              autoFocus
+            />
+          </label>
+        ) : null}
+      </ConfirmDialog>
     </div>
   );
 }

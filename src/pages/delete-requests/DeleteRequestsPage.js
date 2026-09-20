@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import { api } from "../../services/api";
@@ -20,29 +20,32 @@ export default function DeleteRequests() {
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const data = await api.get("/delete-requests");
       setRequests(data.requests || []);
     } catch (err) {
       setError(err.message);
     }
-  };
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
-  const review = async (id, action) => {
-    setError("");
-    try {
-      await api.post(`/delete-requests/${id}/review`, { action, note });
-      setNote("");
-      await load();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  const review = useCallback(
+    async (id, action) => {
+      setError("");
+      try {
+        await api.post(`/delete-requests/${id}/review`, { action, note });
+        setNote("");
+        await load();
+      } catch (err) {
+        setError(err.message);
+      }
+    },
+    [load, note]
+  );
 
   const columns = useMemo(
     () => [
@@ -85,7 +88,7 @@ export default function DeleteRequests() {
         },
       },
     ],
-    [canReview]
+    [canReview, review]
   );
 
   if (!canView) return <Navigate to="/" replace />;

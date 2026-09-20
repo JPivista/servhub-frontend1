@@ -51,7 +51,14 @@ export const roleActions = {
       { label: "Issue RFQ", status: "RFQ Issued", tone: "edit" },
       { label: "Recommend (framework / direct)", status: "Pending Commercial", tone: "approve" },
     ],
-    "RFQ Issued": [{ label: "Capture quotes & recommend", status: "Pending Commercial", tone: "approve" }],
+    "RFQ Issued": [
+      {
+        label: "Recommend with quotation",
+        status: "Pending Commercial",
+        tone: "approve",
+        requiresQuotation: true,
+      },
+    ],
     "Pending PO": [{ label: "Create & issue PO", status: "Ordered", tone: "approve" }],
     "PO Rejected": [{ label: "Re-select supplier", status: "Sourcing", tone: "edit" }],
     Delivered: [{ label: "Verify & close MR", status: "Closed", tone: "approve" }],
@@ -69,6 +76,14 @@ export const roleActions = {
     ],
   },
   supplier: {
+    "RFQ Issued": [
+      {
+        label: "Submit quotation",
+        status: "RFQ Issued",
+        tone: "edit",
+        requiresQuotation: true,
+      },
+    ],
     Ordered: [
       { label: "Accept PO & dispatch", status: "In transit", tone: "approve" },
       { label: "Reject PO", status: "PO Rejected", tone: "reject" },
@@ -120,12 +135,34 @@ export const actionClass = {
 
 export const stageStatuses = {
   material_requests: null,
-  approvals: ["Requested", "Approved", "Pending Commercial", "Pending Finance"],
+  approvals: ["Requested", "Returned", "Rejected", "Approved", "Pending Commercial", "Pending Finance"],
   procurement: ["Approved", "Sourcing", "RFQ Issued", "Pending Commercial", "Pending PO", "PO Rejected"],
-  purchase_orders: ["Ordered", "In transit", "PO Rejected"],
+  purchase_orders: ["RFQ Issued", "Ordered", "In transit", "PO Rejected"],
   deliveries: ["In transit", "Pending Receipt", "Discrepancy", "Delivered", "Closed"],
   payments: ["Ordered", "In transit", "Pending Receipt", "Delivered", "Closed"],
 };
+
+/** Role-specific inbox filters for stage pages (DAAM flow). */
+export function statusesForStage(moduleKey, roleKey) {
+  const role =
+    roleKey === "user" || roleKey === "requester" ? "requestor" : roleKey;
+
+  if (moduleKey === "approvals") {
+    if (role === "manager") return ["Requested", "Returned", "Rejected", "Approved"];
+    if (role === "department_head") return ["Pending Commercial"];
+    if (role === "finance") return ["Pending Finance"];
+  }
+  if (moduleKey === "procurement" && role === "procurement") {
+    return ["Approved", "Sourcing", "RFQ Issued", "Pending Commercial", "Pending PO", "PO Rejected", "Delivered"];
+  }
+  if (moduleKey === "purchase_orders" && role === "supplier") {
+    return ["RFQ Issued", "Ordered", "In transit", "PO Rejected"];
+  }
+  if (moduleKey === "deliveries" && role === "in_charge") {
+    return ["Pending Receipt", "Discrepancy", "Delivered"];
+  }
+  return stageStatuses[moduleKey];
+}
 
 export function isEditableStatus(status) {
   return status === "Draft" || status === "Returned";

@@ -101,7 +101,7 @@ export default function UserForm() {
         userCreateLimit: 5,
       };
     });
-  }, [actorDepartment, actorRole, departments, existing, isEdit, isSuperAdmin, presetRole]);
+  }, [actorDepartment, actorRole, departmentOptions, departments, existing, isEdit, isSuperAdmin, presetRole]);
 
   if (isEdit && !canEdit) return <Navigate to="/users" replace />;
   if (!isEdit && !canCreate) return <Navigate to="/users" replace />;
